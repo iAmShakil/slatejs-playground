@@ -16,6 +16,7 @@
     "react-scripts": "1.1.5",
     "react-simple-file-input": "^2.1.0",
     "slate": "^0.40.2",
+    "slate-drop-or-paste-images": "^0.8.4",
     "slate-react": "^0.18.5"
   },
   "scripts": {

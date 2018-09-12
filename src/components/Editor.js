@@ -1,10 +1,12 @@
 import { Editor } from 'slate-react'
 import { Value } from 'slate'
+import DropOrPasteImages from 'slate-drop-or-paste-images'
 
 import React from 'react'
 import initialValue from './value.json'
 import { isKeyHotkey } from 'is-hotkey'
 import { Button, Icon, ImgIcon, Toolbar } from './components'
+import Image from './Image'
 
 /**
  * Define the default node type.
@@ -13,6 +15,43 @@ import { Button, Icon, ImgIcon, Toolbar } from './components'
  */
 
 const DEFAULT_NODE = 'paragraph'
+
+/**
+ * Get base64 of a file
+ *
+ * @param {File} file the Image file
+ * @returns {Promise} A promise that returns the base64 string on resolve
+ * 
+ */
+
+const getBase64 = (file) => {
+    const reader = new FileReader
+    reader.readAsDataURL(file)
+    reader.onload = () => {
+      return reader.result
+    }
+    reader.onerror = (error) => {
+      return error
+    }
+}
+
+/**
+ * Slate plugins
+ *
+ * @type {Array}
+ */
+
+const plugins = [
+  DropOrPasteImages({
+    insertImage: (transform, file) => {
+      return transform.insertBlock({
+        type: 'image',
+        isVoid: true,
+        data: { file },
+      })
+    },
+  }),
+]
 
 /**
  * Define hotkey matchers.
@@ -91,6 +130,7 @@ class RichTextExample extends React.Component {
           spellCheck
           autoFocus
           placeholder="Enter some rich text..."
+          plugins={plugins}
           value={this.state.value}
           onChange={this.onChange}
           onKeyDown={this.onKeyDown}
@@ -163,7 +203,7 @@ class RichTextExample extends React.Component {
    */
 
   renderNode = props => {
-    const { attributes, children, node } = props
+    const { attributes, children, node} = props
 
     switch (node.type) {
       case 'block-quote':
@@ -178,6 +218,8 @@ class RichTextExample extends React.Component {
         return <li {...attributes}>{children}</li>
       case 'numbered-list':
         return <ol {...attributes}>{children}</ol>
+      case 'image':
+        return <Image {...props} />
     }
   }
 
@@ -200,6 +242,7 @@ class RichTextExample extends React.Component {
         return <em {...attributes}>{children}</em>
       case 'underlined':
         return <u {...attributes}>{children}</u>
+      
     }
   }
 
@@ -210,6 +253,7 @@ class RichTextExample extends React.Component {
    */
 
   onChange = ({ value }) => {
+    console.log(value )
     this.setState({ value })
   }
 
