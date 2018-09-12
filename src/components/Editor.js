@@ -1,13 +1,10 @@
-import { Editor, getEventRange, getEventTransfer } from 'slate-react'
+import { Editor } from 'slate-react'
 import { Value } from 'slate'
 
 import React from 'react'
 import initialValue from './value.json'
 import { isKeyHotkey } from 'is-hotkey'
-import imageExtensions from 'image-extensions'
 import { Button, Icon, ImgIcon, Toolbar } from './components'
-import isUrl from 'is-url'
-import styled from 'react-emotion'
 
 /**
  * Define the default node type.
@@ -27,45 +24,6 @@ const isBoldHotkey = isKeyHotkey('mod+b')
 const isItalicHotkey = isKeyHotkey('mod+i')
 const isUnderlinedHotkey = isKeyHotkey('mod+u')
 const isCodeHotkey = isKeyHotkey('mod+`')
-
-
-/*
- * A function to determine whether a URL has an image extension.
- *
- * @param {String} url
- * @return {Boolean}
- */
-
-function isImage(url) {
-  return !!imageExtensions.find(url.endsWith)
-}
-
-const Image = styled('img')`
-  display: block;
-  max-width: 100%;
-  max-height: 20em;
-  box-shadow: ${props => (props.selected ? '0 0 0 2px blue;' : 'none')};
-`
-
-/**
- * A change function to standardize inserting images.
- *
- * @param {Change} change
- * @param {String} src
- * @param {Range} target
- **/
-
-
-function insertImage(change, src, target) {
-  if (target) {
-    change.select(target)
-  }
-
-  change.insertBlock({
-    type: 'image',
-    data: { src },
-  })
-}
 
 /**
  * The rich text example.
@@ -93,7 +51,7 @@ class RichTextExample extends React.Component {
 
   hasMark = type => {
     const { value } = this.state
-    return value.activeMarks.some(mark => mark.type === type)
+    return value.activeMarks.some(mark => mark.type == type)
   }
 
   /**
@@ -138,8 +96,6 @@ class RichTextExample extends React.Component {
           onKeyDown={this.onKeyDown}
           renderNode={this.renderNode}
           renderMark={this.renderMark}
-          onDrop={this.onDropOrPaste}
-          onPaste={this.onDropOrPaste}
         />
       </div>
     )
@@ -166,6 +122,11 @@ class RichTextExample extends React.Component {
     )
   }
 
+  // img onChange
+  imgOnChange = (e) => {
+    console.log('changed')
+  }
+
   /**
    * Render a block-toggling toolbar button.
    *
@@ -174,7 +135,7 @@ class RichTextExample extends React.Component {
    * @return {Element}
    */
 
-  renderBlockButton = (type, icon) => {
+ renderBlockButton = (type, icon) => {
     let isActive = this.hasBlock(type)
     let isImgInput = type === 'img'
 
@@ -217,10 +178,6 @@ class RichTextExample extends React.Component {
         return <li {...attributes}>{children}</li>
       case 'numbered-list':
         return <ol {...attributes}>{children}</ol>
-      case 'image': {
-        const src = node.data.get('src')
-        return <Image src={src} {...attributes} />
-      }
     }
   }
 
@@ -253,7 +210,6 @@ class RichTextExample extends React.Component {
    */
 
   onChange = ({ value }) => {
-    console.log(value)
     this.setState({ value })
   }
 
@@ -350,50 +306,6 @@ class RichTextExample extends React.Component {
 
     this.onChange(change)
   }
-
-  // image input handler
-  imgOnChange(e){
-    console.log(e.target.files)
-  }
-    /**
-   * On drop, insert the image wherever it is dropped.
-   *
-   * @param {Event} event
-   * @param {Change} change
-   * @param {Editor} editor
-   */
-
-  onDropOrPaste = (event, change, editor) => {
-    console.log('ondroppaste triggered')
-    const target = getEventRange(event, change.value)
-    if (!target && event.type == 'drop') return
-
-    const transfer = getEventTransfer(event)
-    const { type, text, files } = transfer
-
-    if (type == 'files') {
-      for (const file of files) {
-        const reader = new FileReader()
-        const [mime] = file.type.split('/')
-        if (mime != 'image') continue
-
-        reader.addEventListener('load', () => {
-          editor.change(c => {
-            c.call(insertImage, reader.result, target)
-          })
-        })
-
-        reader.readAsDataURL(file)
-      }
-    }
-
-    if (type == 'text') {
-      if (!isUrl(text)) return
-      if (!isImage(text)) return
-      change.call(insertImage, text, target)
-    }
-  }
-
 }
 
 /**
