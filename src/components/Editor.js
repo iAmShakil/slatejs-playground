@@ -1,5 +1,5 @@
 import { Editor } from 'slate-react'
-import { Value } from 'slate'
+import { Block, Value } from 'slate'
 import DropOrPasteImages from 'slate-drop-or-paste-images'
 
 import React from 'react'
@@ -15,6 +15,32 @@ import Image from './Image'
  */
 
 const DEFAULT_NODE = 'paragraph'
+
+
+/**
+ * The editor's schema.
+ *
+ * @type {Object}
+ */
+
+const schema = {
+  document: {
+    last: { type: 'paragraph' },
+    normalize: (change, { code, node, child }) => {
+      switch (code) {
+        case 'last_child_type_invalid': {
+          const paragraph = Block.create('paragraph')
+          return change.insertNodeByKey(node.key, node.nodes.size, paragraph)
+        }
+      }
+    },
+  },
+  blocks: {
+    image: {
+      isVoid: true,
+    },
+  },
+}
 
 /**
  * Get base64 of a file
@@ -136,6 +162,7 @@ class RichTextExample extends React.Component {
           onKeyDown={this.onKeyDown}
           renderNode={this.renderNode}
           renderMark={this.renderMark}
+          schema={schema}
         />
       </div>
     )

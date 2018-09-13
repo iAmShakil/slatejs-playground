@@ -20,7 +20,7 @@ class Image extends React.Component {
     const { attributes } = this.props
     const { src } = this.state
     const { children } = this.props
-    return src ? <img {...attributes} src={src} /> : <span {...attributes}> Loading... {children} </span>
+    return src ? <img {...attributes} src={src} />: <span {...attributes}> Loading... {children} </span>
   }
 }
 
