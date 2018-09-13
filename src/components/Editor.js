@@ -1,12 +1,16 @@
-import { Editor } from 'slate-react'
-import { Block, Value } from 'slate'
-import DropOrPasteImages from 'slate-drop-or-paste-images'
-
 import React from 'react'
-import initialValue from './value.json'
+import { Editor } from 'slate-react'
+import { Value } from 'slate'
+import DropOrPasteImages from 'slate-drop-or-paste-images'
+import EditList from 'slate-edit-list'
+
 import { isKeyHotkey } from 'is-hotkey'
+
 import { Button, Icon, ImgIcon, Toolbar } from './components'
-import Image from './Image'
+import renderNode from './helpers/renderNode'
+import renderMark from './helpers/renderMark'
+import initialValue from './value.json'
+import schema from './schema'
 
 /**
  * Define the default node type.
@@ -15,51 +19,6 @@ import Image from './Image'
  */
 
 const DEFAULT_NODE = 'paragraph'
-
-
-/**
- * The editor's schema.
- *
- * @type {Object}
- */
-
-const schema = {
-  document: {
-    last: { type: 'paragraph' },
-    normalize: (change, { code, node, child }) => {
-      switch (code) {
-        case 'last_child_type_invalid': {
-          const paragraph = Block.create('paragraph')
-          return change.insertNodeByKey(node.key, node.nodes.size, paragraph)
-        }
-      }
-    },
-  },
-  blocks: {
-    image: {
-      isVoid: true,
-    },
-  },
-}
-
-/**
- * Get base64 of a file
- *
- * @param {File} file the Image file
- * @returns {Promise} A promise that returns the base64 string on resolve
- * 
- */
-
-const getBase64 = (file) => {
-    const reader = new FileReader
-    reader.readAsDataURL(file)
-    reader.onload = () => {
-      return reader.result
-    }
-    reader.onerror = (error) => {
-      return error
-    }
-}
 
 /**
  * Slate plugins
@@ -77,6 +36,7 @@ const plugins = [
       })
     },
   }),
+  EditList()
 ]
 
 /**
@@ -89,6 +49,8 @@ const isBoldHotkey = isKeyHotkey('mod+b')
 const isItalicHotkey = isKeyHotkey('mod+i')
 const isUnderlinedHotkey = isKeyHotkey('mod+u')
 const isCodeHotkey = isKeyHotkey('mod+`')
+
+const existingValue = localStorage.getItem('content')? Value.fromJSON(JSON.parse(localStorage.getItem('content'))) : ''
 
 /**
  * The rich text example.
@@ -104,7 +66,7 @@ class RichTextExample extends React.Component {
    */
 
   state = {
-    value: Value.fromJSON(initialValue),
+    value: existingValue || Value.fromJSON(initialValue)
   }
 
   /**
@@ -148,9 +110,9 @@ class RichTextExample extends React.Component {
           {this.renderBlockButton('heading-one', 'looks_one')}
           {this.renderBlockButton('heading-two', 'looks_two')}
           {this.renderBlockButton('block-quote', 'format_quote')}
-          {this.renderBlockButton('numbered-list', 'format_list_numbered')}
-          {this.renderBlockButton('bulleted-list', 'format_list_bulleted')}
-          {this.renderBlockButton('img', 'image')}
+          {this.renderBlockButton('ol_list', 'format_list_numbered')}
+          {this.renderBlockButton('ul_list', 'format_list_bulleted')}
+          <ImgIcon imgOnChange={this.imgOnChange} />
         </Toolbar>
         <Editor
           spellCheck
@@ -160,8 +122,8 @@ class RichTextExample extends React.Component {
           value={this.state.value}
           onChange={this.onChange}
           onKeyDown={this.onKeyDown}
-          renderNode={this.renderNode}
-          renderMark={this.renderMark}
+          renderNode={renderNode}
+          renderMark={renderMark}
           schema={schema}
         />
       </div>
@@ -190,8 +152,15 @@ class RichTextExample extends React.Component {
   }
 
   // img onChange
-  imgOnChange = (e) => {
-    console.log('changed')
+  imgOnChange = (event) => {
+    const { value } = this.state
+    const change = value.change()
+    const file = event.target.files[0]
+    change.insertBlock({
+      type: 'image',
+      isVoid: true,
+      data: file,
+    })
   }
 
   /**
@@ -204,12 +173,11 @@ class RichTextExample extends React.Component {
 
  renderBlockButton = (type, icon) => {
     let isActive = this.hasBlock(type)
-    let isImgInput = type === 'img'
 
-    if (['numbered-list', 'bulleted-list'].includes(type)) {
+    if (['ol_list', 'ul_list'].includes(type)) {
       const { value } = this.state
       const parent = value.document.getParent(value.blocks.first().key)
-      isActive = this.hasBlock('list-item') && parent && parent.type === type
+      isActive = this.hasBlock('list_item') && parent && parent.type === type
     }
 
     return (
@@ -217,60 +185,9 @@ class RichTextExample extends React.Component {
         active={isActive}
         onMouseDown={event => this.onClickBlock(event, type)}
       >
-      {isImgInput? <ImgIcon imgOnChange={this.imgOnChange} >{icon}</ImgIcon> : <Icon>{icon}</Icon>}
+      <Icon>{icon}</Icon>
       </Button>
     )
-  }
-
-  /**
-   * Render a Slate node.
-   *
-   * @param {Object} props
-   * @return {Element}
-   */
-
-  renderNode = props => {
-    const { attributes, children, node} = props
-
-    switch (node.type) {
-      case 'block-quote':
-        return <blockquote {...attributes}>{children}</blockquote>
-      case 'bulleted-list':
-        return <ul {...attributes}>{children}</ul>
-      case 'heading-one':
-        return <h1 {...attributes}>{children}</h1>
-      case 'heading-two':
-        return <h2 {...attributes}>{children}</h2>
-      case 'list-item':
-        return <li {...attributes}>{children}</li>
-      case 'numbered-list':
-        return <ol {...attributes}>{children}</ol>
-      case 'image':
-        return <Image {...props} />
-    }
-  }
-
-  /**
-   * Render a Slate mark.
-   *
-   * @param {Object} props
-   * @return {Element}
-   */
-
-  renderMark = props => {
-    const { children, mark, attributes } = props
-
-    switch (mark.type) {
-      case 'bold':
-        return <strong {...attributes}>{children}</strong>
-      case 'code':
-        return <code {...attributes}>{children}</code>
-      case 'italic':
-        return <em {...attributes}>{children}</em>
-      case 'underlined':
-        return <u {...attributes}>{children}</u>
-      
-    }
   }
 
   /**
@@ -281,6 +198,8 @@ class RichTextExample extends React.Component {
 
   onChange = ({ value }) => {
     console.log(value )
+    const content = JSON.stringify(value.toJSON())
+    localStorage.setItem('content', content)
     this.setState({ value })
   }
 
@@ -340,21 +259,22 @@ class RichTextExample extends React.Component {
     const { document } = value
 
     // Handle everything but list buttons.
-    if (type != 'bulleted-list' && type != 'numbered-list') {
+    if (type != 'ul_list' && type != 'ol_list') {
+
       const isActive = this.hasBlock(type)
-      const isList = this.hasBlock('list-item')
+      const isList = this.hasBlock('list_item')
 
       if (isList) {
         change
           .setBlocks(isActive ? DEFAULT_NODE : type)
-          .unwrapBlock('bulleted-list')
-          .unwrapBlock('numbered-list')
+          .unwrapBlock('ul_list')
+          .unwrapBlock('ol_list')
       } else {
         change.setBlocks(isActive ? DEFAULT_NODE : type)
       }
     } else {
       // Handle the extra wrapping required for list buttons.
-      const isList = this.hasBlock('list-item')
+      const isList = this.hasBlock('list_item')
       const isType = value.blocks.some(block => {
         return !!document.getClosest(block.key, parent => parent.type == type)
       })
@@ -362,16 +282,16 @@ class RichTextExample extends React.Component {
       if (isList && isType) {
         change
           .setBlocks(DEFAULT_NODE)
-          .unwrapBlock('bulleted-list')
-          .unwrapBlock('numbered-list')
+          .unwrapBlock('ul_list')
+          .unwrapBlock('ol_list')
       } else if (isList) {
         change
           .unwrapBlock(
-            type == 'bulleted-list' ? 'numbered-list' : 'bulleted-list'
+            type == 'ul_list' ? 'ol_list' : 'ul_list'
           )
           .wrapBlock(type)
       } else {
-        change.setBlocks('list-item').wrapBlock(type)
+        change.setBlocks('list_item').wrapBlock(type)
       }
     }
 
