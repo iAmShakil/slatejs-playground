@@ -122,7 +122,7 @@ class RichTextExample extends React.Component {
   cancelHandler = () => {
     // resetting the current state to the previously stored value
     this.setState({
-      value: localStorage.getItem('content')? Value.fromJSON(JSON.parse(localStorage.getItem('content'))) : ''
+      value: localStorage.getItem('content')? Value.fromJSON(JSON.parse(localStorage.getItem('content'))) : Value.fromJSON(initialValue)
     })
   }
 
