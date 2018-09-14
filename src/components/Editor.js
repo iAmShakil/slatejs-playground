@@ -9,9 +9,12 @@ import { isKeyHotkey } from 'is-hotkey'
 import { Button, Icon, ImgIcon, Toolbar } from './components'
 import renderNode from './helpers/renderNode'
 import renderMark from './helpers/renderMark'
+import BlockLimiter from './plugins/slate-top-level-block-limiter'
 
 import initialValue from './value.json'
 import schema from './schema'
+
+var disableSave = false
 
 /**
  * Define the default node type.
@@ -28,6 +31,8 @@ const DEFAULT_NODE = 'paragraph'
  */
 
 const plugins = [
+
+  
   DropOrPasteImages({
     extensions: ['png','jpeg'],
     insertImage: (transform, file) => {
@@ -38,7 +43,16 @@ const plugins = [
       })
     },
   }),
-  EditList()
+  
+  EditList(),
+
+  BlockLimiter( {limit: 5}, () => {
+    disableSave = true
+    console.log('not savable')
+  }, () => {
+    disableSave = false
+    console.log('savable')
+  } )
 ]
 
 /**
@@ -119,7 +133,7 @@ class RichTextExample extends React.Component {
     return (
       <div>
         <div style={{marginBottom: '10px'}}>
-          <button onClick={this.saveHandler}>Save</button>
+          <button disabled={disableSave} onClick={this.saveHandler}>Save</button>
           <button onClick={this.cancelHandler}>Cancel</button>
         </div>
         <Toolbar>

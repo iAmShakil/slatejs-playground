@@ -17,10 +17,10 @@ export const Icon = styled(({ className, ...rest }) => {
 `
 export const ImgIcon = (props) => {
   return <label>
-           <input onChange={props.imgOnChange} style={{display : 'none'}} type="file"/>
-           <span className={`material-icons image-upload-icon`} >
+    <input onChange={props.imgOnChange} style={{ display: 'none' }} type='file' />
+    <span className={`material-icons image-upload-icon`} >
              image
-           </span>
+    </span>
   </label>
 }
 
