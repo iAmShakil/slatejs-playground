@@ -14,6 +14,11 @@ import BlockLimiter from './plugins/slate-top-level-block-limiter'
 import initialValue from './value.json'
 import schema from './schema'
 
+/**
+ * Defines if the save button is disabled
+ *
+ * @type {Boolean}
+ */
 var disableSave = false
 
 /**
@@ -146,7 +151,7 @@ class RichTextExample extends React.Component {
           {this.renderBlockButton('block-quote', 'format_quote')}
           {this.renderBlockButton('ol_list', 'format_list_numbered')}
           {this.renderBlockButton('ul_list', 'format_list_bulleted')}
-          <ImgIcon imgOnChange={this.imgOnChange} />
+          <ImgIcon onImgChange={this.onImgChange} />
         </Toolbar>
         <Editor
           spellCheck
@@ -185,8 +190,12 @@ class RichTextExample extends React.Component {
     )
   }
 
-  // img onChange
-  imgOnChange = (event) => {
+    /**
+   * Event handler for the image icon
+   * @param {Event}
+   * @return {Void}
+   */
+  onImgChange = (event) => {
     event.preventDefault()
     const { value } = this.state
     const file = event.target.files[0]
