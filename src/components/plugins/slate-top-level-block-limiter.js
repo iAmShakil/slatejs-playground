@@ -11,8 +11,8 @@ function topLevelBlockLimiter (options = {}, overLimitCb, inLimitCb) {
   if (options.limit === undefined) throw new Error('A limit has to be set')
   return {
     onChange (props) {
-      var topLevelBlockLength = props.value.document.nodes.size
-      if (topLevelBlockLength > options.limit) {
+      var topLevelBlocksLength = props.value.document.nodes.size
+      if (topLevelBlocksLength > options.limit) {
         overLimitCb()
       } else {
         inLimitCb()
