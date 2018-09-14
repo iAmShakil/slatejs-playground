@@ -14,8 +14,7 @@ function topLevelBlockLimiter (options = {}, overLimitCb, inLimitCb) {
       var topLevelBlockLength = props.value.document.nodes.size
       if (topLevelBlockLength > options.limit) {
         overLimitCb()
-      }
-      if (topLevelBlockLength <= options.limit) {
+      } else {
         inLimitCb()
       }
     }
