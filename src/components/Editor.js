@@ -173,13 +173,13 @@ class RichTextExample extends React.Component {
   // img onChange
   imgOnChange = (event) => {
     const { value } = this.state
-    const change = value.change()
     const file = event.target.files[0]
-    change.insertBlock({
+    const change = this.state.value.change().insertBlock({
       type: 'image',
       isVoid: true,
-      data: file,
+      data: { file },
     })
+    this.onChange(change)
   }
 
   /**
