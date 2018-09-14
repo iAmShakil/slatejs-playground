@@ -9,6 +9,7 @@ import { isKeyHotkey } from 'is-hotkey'
 import { Button, Icon, ImgIcon, Toolbar } from './components'
 import renderNode from './helpers/renderNode'
 import renderMark from './helpers/renderMark'
+
 import initialValue from './value.json'
 import schema from './schema'
 
@@ -93,6 +94,20 @@ class RichTextExample extends React.Component {
     return value.blocks.some(node => node.type == type)
   }
 
+  saveHandler = () => {
+    // saving the current state to the local storage
+    const value = this.state.value
+    const content = JSON.stringify(value.toJSON())
+    localStorage.setItem('content', content)
+  }
+  
+  cancelHandler = () => {
+    // resetting the current state to the previously stored value
+    this.setState({
+      value: localStorage.getItem('content')? Value.fromJSON(JSON.parse(localStorage.getItem('content'))) : ''
+    })
+  }
+
   /**
    * Render.
    *
@@ -102,6 +117,10 @@ class RichTextExample extends React.Component {
   render() {
     return (
       <div>
+        <div style={{marginBottom: '10px'}}>
+          <button onClick={this.saveHandler}>Save</button>
+          <button onClick={this.cancelHandler}>Cancel</button>
+        </div>
         <Toolbar>
           {this.renderMarkButton('bold', 'format_bold')}
           {this.renderMarkButton('italic', 'format_italic')}
@@ -198,8 +217,6 @@ class RichTextExample extends React.Component {
 
   onChange = ({ value }) => {
     console.log(value )
-    const content = JSON.stringify(value.toJSON())
-    localStorage.setItem('content', content)
     this.setState({ value })
   }
 
