@@ -138,8 +138,8 @@ class RichTextExample extends React.Component {
     return (
       <div>
         <div style={{marginBottom: '10px'}}>
-          <button disabled={disableSave} onClick={this.saveHandler}>Save</button>
-          <button onClick={this.cancelHandler}>Cancel</button>
+          <button className='top-buttons' disabled={disableSave} onClick={this.saveHandler}>Save</button>
+          <button className='top-buttons' onClick={this.cancelHandler}>Cancel</button>
         </div>
         <Toolbar>
           {this.renderMarkButton('bold', 'format_bold')}
