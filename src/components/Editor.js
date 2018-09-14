@@ -29,6 +29,7 @@ const DEFAULT_NODE = 'paragraph'
 
 const plugins = [
   DropOrPasteImages({
+    extensions: ['png','jpeg'],
     insertImage: (transform, file) => {
       return transform.insertBlock({
         type: 'image',
@@ -172,14 +173,22 @@ class RichTextExample extends React.Component {
 
   // img onChange
   imgOnChange = (event) => {
+    event.preventDefault()
     const { value } = this.state
     const file = event.target.files[0]
+    if(file.type !== 'image/jpeg' && file.type !== 'image/png'){
+      alert('only jpeg and png types are supported')
+      return
+    }
     const change = this.state.value.change().insertBlock({
       type: 'image',
       isVoid: true,
       data: { file },
     })
     this.onChange(change)
+    
+    // resetting the file input field
+    event.target.value =  ''
   }
 
   /**

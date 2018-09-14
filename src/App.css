@@ -80,3 +80,13 @@ input:focus {
     padding: 20px;
     background: rgb(255, 255, 255);
 }
+
+.image-upload-icon{
+  color: #ccc;
+  font-size: 18px;
+  vertical-align: text-bottom;
+  cursor: pointer;
+}
+.image-upload-icon:hover{
+  color: #aaa
+}
