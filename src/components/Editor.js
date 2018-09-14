@@ -53,10 +53,8 @@ const plugins = [
 
   BlockLimiter( {limit: 5}, () => {
     disableSave = true
-    console.log('not savable')
   }, () => {
     disableSave = false
-    console.log('savable')
   } )
 ]
 
@@ -248,7 +246,6 @@ class RichTextExample extends React.Component {
    */
 
   onChange = ({ value }) => {
-    console.log(value )
     this.setState({ value })
   }
 
